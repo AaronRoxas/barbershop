@@ -1,0 +1,204 @@
+---
+description: Appointment booking and availability rules
+globs: ["src/**/*booking*", "src/**/*appointment*", "src/**/*availability*", "src/**/*calendar*"]
+---
+
+# Booking System Rules
+
+The appointment system is the core business functionality.
+
+## Booking Flow
+
+The standard customer flow is:
+
+1. Select service
+2. Select barber
+3. Select date
+4. Select available time
+5. Enter customer information
+6. Review booking
+7. Confirm appointment
+8. Display confirmation
+
+Barber selection may be skipped when the customer chooses "Any Available Barber."
+
+---
+
+## Appointment Duration
+
+Every service has a duration.
+
+Example:
+
+Classic Haircut:
+
+- Price: ₱300
+- Duration: 30 minutes
+
+Skin Fade:
+
+- Price: ₱350
+- Duration: 45 minutes
+
+The examples above are placeholders.
+
+The actual service duration must come from the database.
+
+Availability calculations must account for the entire service duration.
+
+---
+
+## Available Slots
+
+A time slot is available only when:
+
+- The business is open.
+- The barber is working.
+- The barber is not on break.
+- The date is not blocked.
+- The slot is not in the past.
+- The appointment fits completely within business hours.
+- The barber does not already have a conflicting appointment.
+
+---
+
+## Double Booking
+
+Double booking must be prevented server-side.
+
+Never rely only on:
+
+```text
+Frontend → check availability → create appointment
+```
+
+because two customers can perform the check simultaneously.
+
+Use appropriate database constraints, transactions, locking, or another reliable concurrency strategy.
+
+---
+
+## Time Handling
+
+Store appointment times consistently.
+
+Use a clearly defined business timezone.
+
+Do not mix:
+
+- Browser local time
+- Server timezone
+- Database timezone
+
+without explicit conversion.
+
+The application should have one canonical timezone configuration.
+
+---
+
+## Appointment Status
+
+Supported statuses:
+
+- pending
+- confirmed
+- completed
+- cancelled
+- no_show
+
+Do not use arbitrary status strings throughout the application.
+
+Use a consistent enum/type.
+
+---
+
+## Cancellation
+
+Cancelled appointments should no longer block availability.
+
+However, appointment history should remain available to administrators.
+
+Do not permanently delete appointment records simply because an appointment was cancelled.
+
+---
+
+## Rescheduling
+
+When rescheduling:
+
+1. Validate the new date.
+2. Validate the new time.
+3. Validate barber availability.
+4. Check conflicts.
+5. Update the appointment.
+6. Trigger an appropriate notification if notifications are implemented.
+
+---
+
+## Business Hours
+
+Availability must respect:
+
+- Opening time
+- Closing time
+- Break periods
+- Holidays
+- Special hours
+- Temporary closures
+
+---
+
+## Booking Confirmation
+
+After successful booking, display:
+
+- Confirmation number
+- Customer name
+- Service
+- Barber
+- Date
+- Time
+- Duration
+- Price
+- Business address
+- Contact information
+
+---
+
+## Notifications
+
+The system should eventually support:
+
+### Immediate
+
+Booking confirmation.
+
+### 24 hours before
+
+Appointment reminder.
+
+### Optional
+
+Same-day reminder.
+
+Notifications should be idempotent to avoid duplicate messages.
+
+---
+
+## Edge Cases
+
+Handle:
+
+- Fully booked days
+- Closed days
+- Invalid dates
+- Past dates
+- Cancelled appointments
+- Concurrent bookings
+- Deleted services
+- Disabled barbers
+- Barber days off
+- Business holidays
+- Booking outside business hours
+- Service duration exceeding available time
+- Customer submitting the booking form twice

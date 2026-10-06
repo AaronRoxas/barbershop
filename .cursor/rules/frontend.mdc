@@ -1,0 +1,118 @@
+---
+description: Frontend, UI, UX, responsive design, and accessibility rules
+globs: ["src/**/*.tsx", "src/**/*.css", "src/**/*.ts"]
+---
+
+# Frontend Rules
+
+## Design Direction
+
+The public website should feel like a modern premium barbershop.
+
+Visual characteristics:
+
+- Clean
+- Confident
+- Stylish
+- Premium
+- Masculine but welcoming
+- Modern
+- Professional
+
+Do not make the interface look like a generic SaaS dashboard.
+
+## Responsive Design
+
+Use mobile-first responsive design.
+
+Primary breakpoints:
+
+- Mobile: approximately 375px
+- Tablet: approximately 768px
+- Desktop: approximately 1440px
+
+The website must remain usable between these sizes.
+
+## Mobile Booking
+
+Mobile booking is a priority.
+
+Use:
+
+- Large touch targets
+- Clear buttons
+- Simple forms
+- Easy date selection
+- Easy time selection
+- Minimal typing
+- Clear confirmation
+
+Avoid tiny controls.
+
+## Components
+
+Build reusable components for common UI patterns.
+
+Examples:
+
+- Button
+- Input
+- Select
+- Modal
+- Dialog
+- Card
+- Badge
+- Form field
+- Calendar
+- Time slot
+- Service card
+- Appointment card
+
+Do not create unnecessarily generic components.
+
+## Forms
+
+Forms must:
+
+- Display validation errors
+- Clearly identify required fields
+- Preserve entered information when possible
+- Show loading states
+- Prevent accidental duplicate submissions
+- Provide clear success/error feedback
+
+## Accessibility
+
+Follow accessible HTML practices.
+
+Use:
+
+- Semantic HTML
+- Proper labels
+- Keyboard navigation
+- Focus states
+- Appropriate ARIA attributes where necessary
+- Sufficient color contrast
+
+Do not rely on color alone to communicate state.
+
+## Animation
+
+Use animation sparingly.
+
+Animations should improve:
+
+- Feedback
+- Navigation
+- Transitions
+- Perceived responsiveness
+
+Avoid excessive animation.
+
+## Images
+
+Use optimized images.
+
+Provide meaningful alt text for important images.
+
+Do not use images merely as decoration when they negatively affect page performance.

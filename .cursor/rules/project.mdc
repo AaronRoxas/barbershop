@@ -1,0 +1,85 @@
+---
+description: General project architecture and development rules
+alwaysApply: true
+---
+
+# Project Rules
+
+This is a production-oriented barbershop booking platform.
+
+Before making changes:
+
+- Inspect the existing project structure.
+- Read relevant documentation.
+- Reuse existing components where appropriate.
+- Do not unnecessarily rewrite working code.
+
+## Architecture
+
+Keep the application organized into logical layers:
+
+- UI components
+- Pages/routes
+- Server actions/API
+- Business logic
+- Database access
+- Validation
+- Authentication
+
+Do not put complex booking logic directly inside UI components.
+
+## TypeScript
+
+Use strict TypeScript.
+
+Avoid:
+
+- `any`
+- unnecessary type assertions
+- duplicated interfaces
+- implicit business logic
+
+Prefer explicit types for:
+
+- Database entities
+- API responses
+- Form data
+- Booking objects
+- Service objects
+- Availability objects
+
+## Error Handling
+
+Every important operation should have:
+
+- Loading state
+- Success state
+- Error state
+- Empty state where appropriate
+
+Never silently swallow errors.
+
+## Environment Variables
+
+Secrets must only exist in environment variables.
+
+Never hardcode:
+
+- API keys
+- Database credentials
+- Supabase service-role keys
+- Authentication secrets
+
+Never expose server-only environment variables to client components.
+
+## Dependencies
+
+Do not add a dependency simply because it makes a small task easier.
+
+Before adding a package, determine whether:
+
+1. The functionality already exists.
+2. The functionality can reasonably be implemented without a package.
+3. The dependency is justified.
+
+Keep the dependency footprint reasonable.

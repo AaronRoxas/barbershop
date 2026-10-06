@@ -1,0 +1,103 @@
+---
+description: Backend, Supabase, database, authentication, and security rules
+globs: ["src/**/*.ts", "src/**/*.tsx"]
+---
+
+# Backend Rules
+
+## Database
+
+Supabase PostgreSQL is the primary database.
+
+Use relational database design.
+
+Do not store complex relational data as unstructured JSON unless there is a clear reason.
+
+## Authentication
+
+Admin functionality must require authentication.
+
+Never assume that hiding an admin page provides security.
+
+Authorization must be enforced server-side.
+
+## Supabase
+
+Use the appropriate Supabase client depending on execution context.
+
+Never expose the Supabase service-role key to the browser.
+
+Use Row Level Security where appropriate.
+
+## Validation
+
+Validate all important user input server-side.
+
+Validate:
+
+- Service IDs
+- Barber IDs
+- Dates
+- Times
+- Customer information
+- Appointment status
+- Availability
+- Admin operations
+
+Client validation is useful for UX but is not a security boundary.
+
+## Database Operations
+
+Keep database operations organized.
+
+Avoid scattering raw database queries throughout UI components.
+
+Prefer dedicated server-side functions or repositories for complex operations.
+
+## Errors
+
+Do not expose raw database errors to customers.
+
+Convert internal errors into useful user-facing messages.
+
+Example:
+
+Internal:
+
+`duplicate key value violates unique constraint`
+
+User-facing:
+
+`This appointment time is no longer available. Please select another time.`
+
+## Admin Data
+
+Customer data is private.
+
+Do not expose:
+
+- Customer email
+- Phone numbers
+- Appointment information
+
+through public endpoints unless specifically required.
+
+## Server-Side Booking
+
+Appointment creation must perform all critical validation server-side.
+
+At minimum:
+
+1. Validate customer information.
+2. Validate service.
+3. Validate barber if selected.
+4. Validate date.
+5. Validate time.
+6. Validate business hours.
+7. Validate barber availability.
+8. Check existing appointments.
+9. Prevent conflicts.
+10. Create appointment.
+11. Return confirmation.
+
+The booking operation should be designed to handle concurrent requests safely.
