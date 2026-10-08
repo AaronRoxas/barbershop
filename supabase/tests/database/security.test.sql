@@ -26,6 +26,10 @@ insert into barbers (id, business_id, name) values
 insert into barber_services (business_id, barber_id, service_id) values
   ('b0000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000001'),
   ('b0000000-0000-0000-0000-000000000002', 'd0000000-0000-0000-0000-000000000002', 'c0000000-0000-0000-0000-000000000002');
+insert into testimonials (business_id, customer_display_name, quote, is_published) values
+  ('b0000000-0000-0000-0000-000000000001', 'Test fixture', 'Published test quote', true),
+  ('b0000000-0000-0000-0000-000000000001', 'Private fixture', 'Unpublished test quote', false),
+  ('b0000000-0000-0000-0000-000000000003', 'Hidden fixture', 'Hidden shop test quote', true);
 insert into appointments (business_id, barber_id, service_id, starts_at, ends_at,
   customer_name, customer_email, customer_phone, service_name, price_minor, duration_minutes, currency)
 values
@@ -44,6 +48,7 @@ select throws_ok($$insert into barber_services values ('b0000000-0000-0000-0000-
 set local role anon;
 select is((select count(*) from businesses where slug like 'test-%'), 2::bigint, 'Guests see active shops only');
 select is((select count(*) from services where business_id::text like 'b000%'), 2::bigint, 'Guests see active services in active shops only');
+select is((select count(*) from testimonials where business_id::text like 'b000%'), 1::bigint, 'Guests see only published reviews in active shops');
 select throws_ok('select * from appointments', '42501', null, 'Guests cannot read customer records');
 select throws_ok('select * from business_members', '42501', null, 'Guests cannot read memberships');
 select throws_ok('select * from time_off', '42501', null, 'Guests cannot read private time-off reasons');
@@ -55,6 +60,12 @@ select set_config('request.jwt.claim.sub', 'a0000000-0000-0000-0000-000000000001
 set local role authenticated;
 select is((select count(*) from appointments), 1::bigint, 'Owner sees only their shop appointments');
 select is((select count(*) from services where business_id = 'b0000000-0000-0000-0000-000000000001'), 2::bigint, 'Owner can read inactive services');
+select is((select count(*) from testimonials where business_id = 'b0000000-0000-0000-0000-000000000001'), 2::bigint, 'Owner can read unpublished reviews for their shop');
+select lives_ok($$update testimonials set quote = 'Edited unpublished test quote'
+  where business_id = 'b0000000-0000-0000-0000-000000000001' and not is_published$$, 'Owner can manage reviews');
+select throws_ok($$insert into testimonials (business_id, customer_display_name, quote)
+  values ('b0000000-0000-0000-0000-000000000002', 'Other shop', 'Denied fixture')$$,
+  '42501', null, 'Owner cannot create reviews in another tenant');
 select lives_ok($$update services set price_minor = 26000 where id = 'c0000000-0000-0000-0000-000000000001'$$, 'Owner can edit own services');
 with changed as (update services set price_minor = 1 where id = 'c0000000-0000-0000-0000-000000000002' returning id)
 select is((select count(*) from changed), 0::bigint, 'Owner cannot edit another tenant');
@@ -74,6 +85,10 @@ reset role;
 select set_config('request.jwt.claim.sub', 'a0000000-0000-0000-0000-000000000002', true);
 set local role authenticated;
 select is((select count(*) from appointments), 1::bigint, 'Staff sees own shop appointments');
+select is((select count(*) from testimonials where business_id = 'b0000000-0000-0000-0000-000000000001'), 1::bigint, 'Staff cannot read unpublished reviews');
+select throws_ok($$insert into testimonials (business_id, customer_display_name, quote)
+  values ('b0000000-0000-0000-0000-000000000001', 'Staff', 'Denied fixture')$$,
+  '42501', null, 'Staff cannot publish reviews');
 select lives_ok($$update appointments set customer_notes = 'Staff edit' where business_id = 'b0000000-0000-0000-0000-000000000001'$$, 'Staff can manage own appointments');
 with changed as (update services set price_minor = 1 where business_id = 'b0000000-0000-0000-0000-000000000001' returning id)
 select is((select count(*) from changed), 0::bigint, 'Staff cannot manage catalog');

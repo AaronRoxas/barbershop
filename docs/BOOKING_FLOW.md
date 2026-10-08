@@ -11,6 +11,8 @@ Select Barber
     ↓
 Select Date
     ↓
+Choose Morning, Afternoon, or Night
+    ↓
 Select Time
     ↓
 Customer Information
@@ -57,6 +59,7 @@ The system only shows slots for that barber.
 # Date Selection
 
 The system must determine whether a date is bookable.
+Customers select an available day from a monthly calendar.
 
 A date is unavailable when:
 
@@ -69,6 +72,10 @@ A date is unavailable when:
 ---
 
 # Time Selection
+
+Choose Morning (before noon), Afternoon (noon to before 6pm), or Night (from 6pm),
+then select an available appointment time from the dropdown. Use the shop timezone.
+Disable periods with no slots and clear the chosen time when the date or period changes.
 
 The system calculates available slots based on:
 
@@ -198,12 +205,12 @@ Booking Confirmed
 
 Reference: BRB-XXXXXX
 
-Service: Skin Fade
+Service: Classic Haircut
 Barber: John
 Date: October 15, 2026
 Time: 5:30 PM
-Duration: 45 minutes
-Price: ₱350
+Duration: 30 minutes
+Price: ₱250
 
 Location:
 [Business Address]

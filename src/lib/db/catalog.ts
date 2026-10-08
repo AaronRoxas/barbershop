@@ -57,3 +57,26 @@ export async function getBusinessHours(businessId: string) {
   if (error) throw new Error("Unable to load business hours.", { cause: error });
   return data;
 }
+
+export async function getBarberServices(businessId: string) {
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.from("barber_services").select("*").eq("business_id", businessId);
+  if (error) throw new Error("Unable to load barber services.", { cause: error });
+  return data;
+}
+
+export async function getBarberHours(businessId: string) {
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.from("barber_hours").select("*")
+    .eq("business_id", businessId).order("weekday").order("opens_at");
+  if (error) throw new Error("Unable to load barber hours.", { cause: error });
+  return data;
+}
+
+export async function getTestimonials(businessId: string) {
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.from("testimonials").select("*")
+    .eq("business_id", businessId).eq("is_published", true).order("sort_order");
+  if (error) throw new Error("Unable to load reviews.", { cause: error });
+  return data;
+}

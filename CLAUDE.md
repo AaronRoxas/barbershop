@@ -184,8 +184,10 @@ Important decisions should not exist only inside chat history.
 
 ## Current Development Phase
 
-Phase 2 database and Supabase implementation is in place locally. See `docs/SUPABASE_SETUP.md`
-for migrations, security tests, fixtures, and hosted setup. Next: Phase 3 — public website.
+Phase 4 guest booking is implemented for the local reference shop. See `docs/BOOKING.md` for
+availability, transaction safety, privacy, and verification; `docs/PUBLIC_WEBSITE.md` for public
+content; and `docs/SUPABASE_SETUP.md` for setup. Next: Phase 5 — admin dashboard.
+Usual working hours are not a reservation; only a successful booking submission saves an appointment.
 
 Build the application incrementally according to:
 

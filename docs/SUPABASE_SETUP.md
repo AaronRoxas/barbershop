@@ -2,7 +2,7 @@
 
 The repository contains versioned migrations, development fixtures, database security tests,
 generated TypeScript types, typed Supabase clients, and public catalog query helpers.
-Public pages and booking remain placeholders until Phases 3 and 4.
+Public pages and Phase 4 guest booking are implemented; see `docs/PUBLIC_WEBSITE.md` and `docs/BOOKING.md`.
 
 ## Local development
 
@@ -25,11 +25,13 @@ npm run dev
 http://127.0.0.1:54323. The API is at http://127.0.0.1:54321.
 `db:env` creates the Git-ignored `.env.local` from local credentials without printing secrets.
 It refuses to overwrite an existing file. `db:stop` stops the containers and preserves local data.
+To intentionally switch an existing `.env.local` to the reference local project, use
+`npm run db:env -- --use-local`; this preserves unrelated variables.
 
 For a **disposable local database only**, `npx supabase db reset --local` reapplies migrations
 and fixtures and deletes existing local records. Do not reset a database with data you need.
 
-The reference shop uses `Asia/Manila`, PHP, two barbers, three services, Monday–Saturday
+The reference shop uses `Asia/Manila`, PHP, two barbers, five services, Monday–Saturday
 09:00–12:00 and 13:00–19:00. These are development fixtures, not real business details.
 No user accounts or customer appointments are seeded.
 
@@ -101,12 +103,12 @@ Appointments store UTC bounds, service name, duration, price, and currency snaps
 must match the bounds. A partial GiST exclusion constraint prevents overlap for `pending` and
 `confirmed` appointments with the same business/barber, including concurrent writes. Ranges
 are half-open, so back-to-back bookings are permitted. Cancellation releases the slot while
-preserving history. SQLSTATE `23P01` should become the friendly slot-unavailable error in Phase 4.
+preserving history. SQLSTATE `23P01` becomes the friendly slot-unavailable error in Phase 4.
 
-The constraint protects occupancy. Phase 4 must still validate business hours, active assignments,
-notice/window settings, customer inputs, and availability on the server before using service-role
-access. No guest insert policy or public appointment lookup exists. A reference code alone does
-not grant access to customer records.
+The constraint protects occupancy. Phase 4 validates business hours, active assignments,
+notice/window settings, customer inputs, and availability through server-only booking RPCs.
+No guest insert policy or public appointment lookup exists. A signed browser cookie gates the
+restricted confirmation projection; a reference code alone does not grant access to customer records.
 
 ## Images and types
 

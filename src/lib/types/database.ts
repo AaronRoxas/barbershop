@@ -7,14 +7,14 @@ export type Database = {
           Tables: {
             "appointments": {
                   Row: {
-                    "barber_id": string,"business_id": string,"created_at": string,"currency": string,"customer_email": string,"customer_name": string,"customer_notes": string,"customer_phone": string,"duration_minutes": number,"ends_at": string,"id": string,"price_minor": number,"reference_code": string,"service_id": string,"service_name": string,"starts_at": string,"status": Database["public"]['Enums']["appointment_status"],"updated_at": string
+                    "barber_id": string,"business_id": string,"created_at": string,"currency": string,"customer_email": string,"customer_name": string,"customer_notes": string,"customer_phone": string,"duration_minutes": number,"ends_at": string,"id": string,"price_minor": number,"reference_code": string,"request_id": string | null,"service_id": string,"service_name": string,"starts_at": string,"status": Database["public"]['Enums']["appointment_status"],"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "barber_id": string,"business_id": string,"created_at"?: string,"currency": string,"customer_email": string,"customer_name": string,"customer_notes"?: string,"customer_phone": string,"duration_minutes": number,"ends_at": string,"id"?: string,"price_minor": number,"reference_code"?: string,"service_id": string,"service_name": string,"starts_at": string,"status"?: Database["public"]['Enums']["appointment_status"],"updated_at"?: string
+                    "barber_id": string,"business_id": string,"created_at"?: string,"currency": string,"customer_email": string,"customer_name": string,"customer_notes"?: string,"customer_phone": string,"duration_minutes": number,"ends_at": string,"id"?: string,"price_minor": number,"reference_code"?: string,"request_id"?: string | null,"service_id": string,"service_name": string,"starts_at": string,"status"?: Database["public"]['Enums']["appointment_status"],"updated_at"?: string
                   }
                   Update: {
-                    "barber_id"?: string,"business_id"?: string,"created_at"?: string,"currency"?: string,"customer_email"?: string,"customer_name"?: string,"customer_notes"?: string,"customer_phone"?: string,"duration_minutes"?: number,"ends_at"?: string,"id"?: string,"price_minor"?: number,"reference_code"?: string,"service_id"?: string,"service_name"?: string,"starts_at"?: string,"status"?: Database["public"]['Enums']["appointment_status"],"updated_at"?: string
+                    "barber_id"?: string,"business_id"?: string,"created_at"?: string,"currency"?: string,"customer_email"?: string,"customer_name"?: string,"customer_notes"?: string,"customer_phone"?: string,"duration_minutes"?: number,"ends_at"?: string,"id"?: string,"price_minor"?: number,"reference_code"?: string,"request_id"?: string | null,"service_id"?: string,"service_name"?: string,"starts_at"?: string,"status"?: Database["public"]['Enums']["appointment_status"],"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -151,14 +151,14 @@ isOneToOne: false
                   ]
                 },"businesses": {
                   Row: {
-                    "address": string,"created_at": string,"currency": string,"description": string,"email": string,"id": string,"is_active": boolean,"maximum_booking_days": number,"minimum_notice_minutes": number,"name": string,"phone": string,"slot_interval_minutes": number,"slug": string,"timezone": string,"updated_at": string
+                    "address": string,"created_at": string,"currency": string,"description": string,"email": string,"gallery_image_paths": (string)[],"hero_image_path": string | null,"id": string,"is_active": boolean,"maximum_booking_days": number,"minimum_notice_minutes": number,"name": string,"philosophy": string,"phone": string,"slot_interval_minutes": number,"slug": string,"social_links": NonNullable<Json>,"story": string,"timezone": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "address"?: string,"created_at"?: string,"currency"?: string,"description"?: string,"email"?: string,"id"?: string,"is_active"?: boolean,"maximum_booking_days"?: number,"minimum_notice_minutes"?: number,"name": string,"phone"?: string,"slot_interval_minutes"?: number,"slug": string,"timezone"?: string,"updated_at"?: string
+                    "address"?: string,"created_at"?: string,"currency"?: string,"description"?: string,"email"?: string,"gallery_image_paths"?: (string)[],"hero_image_path"?: string | null,"id"?: string,"is_active"?: boolean,"maximum_booking_days"?: number,"minimum_notice_minutes"?: number,"name": string,"philosophy"?: string,"phone"?: string,"slot_interval_minutes"?: number,"slug": string,"social_links"?: NonNullable<Json>,"story"?: string,"timezone"?: string,"updated_at"?: string
                   }
                   Update: {
-                    "address"?: string,"created_at"?: string,"currency"?: string,"description"?: string,"email"?: string,"id"?: string,"is_active"?: boolean,"maximum_booking_days"?: number,"minimum_notice_minutes"?: number,"name"?: string,"phone"?: string,"slot_interval_minutes"?: number,"slug"?: string,"timezone"?: string,"updated_at"?: string
+                    "address"?: string,"created_at"?: string,"currency"?: string,"description"?: string,"email"?: string,"gallery_image_paths"?: (string)[],"hero_image_path"?: string | null,"id"?: string,"is_active"?: boolean,"maximum_booking_days"?: number,"minimum_notice_minutes"?: number,"name"?: string,"philosophy"?: string,"phone"?: string,"slot_interval_minutes"?: number,"slug"?: string,"social_links"?: NonNullable<Json>,"story"?: string,"timezone"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     
@@ -209,6 +209,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"testimonials": {
+                  Row: {
+                    "business_id": string,"created_at": string,"customer_display_name": string,"id": string,"is_published": boolean,"quote": string,"sort_order": number,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "business_id": string,"created_at"?: string,"customer_display_name": string,"id"?: string,"is_published"?: boolean,"quote": string,"sort_order"?: number,"updated_at"?: string
+                  }
+                  Update: {
+                    "business_id"?: string,"created_at"?: string,"customer_display_name"?: string,"id"?: string,"is_published"?: boolean,"quote"?: string,"sort_order"?: number,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "testimonials_business_id_fkey"
+      columns: ["business_id"]
+isOneToOne: false
+      referencedRelation: "businesses"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"time_off": {
                   Row: {
                     "barber_id": string | null,"business_id": string,"ends_at": string,"id": string,"reason": string,"starts_at": string
@@ -241,7 +261,17 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            [_ in never]: never
+            "booking_availability":
+{ Args: { "p_barber": string,"p_business": string,"p_date": string,"p_service": string }; Returns: Json
+                           },
+"booking_slots":
+{ Args: { "p_barber": string,"p_business": string,"p_date": string,"p_service": string }; Returns: {
+              "barber_id": string,"ends_at": string,"starts_at": string
+            }[]
+                           },
+"create_guest_booking":
+{ Args: { "p_barber": string,"p_business": string,"p_email": string,"p_name": string,"p_notes": string,"p_phone": string,"p_request": string,"p_service": string,"p_starts_at": string }; Returns: string
+                           }
           }
           Enums: {
             "appointment_status": "pending"|"confirmed"|"completed"|"cancelled"|"no_show","member_role": "owner"|"staff"
