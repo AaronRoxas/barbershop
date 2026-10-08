@@ -2,18 +2,25 @@
 
 Reusable, multi-tenant appointment booking for barbershops. See `docs/PROJECT_SPEC.md` and `docs/ARCHITECTURE.md`.
 
-## Phase 1
+## Current phase
 
-Application shell only: Next.js, TypeScript, Tailwind, environment validation, and Supabase client helpers. No booking, database schema, or admin auth yet.
+Phase 2 adds the multi-tenant database, RLS policies, scheduling model, booking conflict constraint,
+image storage policies, typed Supabase clients, and local development setup.
+See [Supabase setup](docs/SUPABASE_SETUP.md) for local startup, database checks, and hosted configuration.
+The website, booking flow, and admin login are still placeholders for later phases.
 
 ## Setup
 
+Start Docker Desktop, then run:
+
 ```bash
-npm install
-cp .env.example .env.local
+npm ci
+npm run db:start
+npm run db:env
 ```
 
-Fill in Supabase values in `.env.local` when you start Phase 2. The public pages run without them.
+`db:env` creates `.env.local` if it does not exist. For a hosted project, copy `.env.example`
+and supply your project credentials instead. Public placeholders can still run without Supabase.
 
 ```bash
 npm run dev

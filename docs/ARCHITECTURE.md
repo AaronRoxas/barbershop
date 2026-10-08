@@ -1,6 +1,6 @@
 # Architecture
 
-This document records decisions from the Phase 1 planning pass. Application code should follow it. Update this file when a decision changes.
+This document records decisions from Phases 1 and 2. Application code should follow it. Update this file when a decision changes.
 
 ## Product shape
 
@@ -47,7 +47,15 @@ Booking availability and appointment writes must not live in UI components.
 - **Server:** anon key + cookies (RLS as the logged-in user).
 - **Admin:** service role, server-only, after application validation. Never expose this key to the client.
 
-Public catalog reads will use RLS. Appointment creation will re-validate on the server and rely on a Postgres exclusion constraint as the last concurrency guard (Phase 2+).
+Public catalog reads use RLS through typed clients and `src/lib/db/catalog.ts`. Appointment creation
+will re-validate on the server in Phase 4. The Phase 2 Postgres exclusion constraint is the final
+concurrency guard for pending/confirmed appointments. See `docs/SUPABASE_SETUP.md` for the schema,
+roles, scheduling conventions, local commands, and hosted setup.
+
+Tenant relationships include `business_id` in foreign keys. Membership is provisioned through trusted
+server/admin SQL, never self-assigned through the API. Staff manage appointments; owners also manage
+catalog, schedules, and public marketing images. Guest users cannot read or write appointment records.
+Use integer minor units for prices and preserve service/price/duration/currency snapshots on bookings.
 
 ## Time
 
@@ -55,8 +63,8 @@ Store appointment bounds as `timestamptz` (UTC instants). Interpret civil `date`
 
 ## Implementation phases
 
-1. Project setup (this phase)
-2. Database and Supabase
+1. Project setup (complete)
+2. Database and Supabase (implemented locally; hosted setup is account-dependent)
 3. Public website
 4. Booking system
 5. Admin dashboard

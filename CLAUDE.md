@@ -184,7 +184,8 @@ Important decisions should not exist only inside chat history.
 
 ## Current Development Phase
 
-Phase 1 (project setup) is in place. Next: Phase 2 — database and Supabase configuration.
+Phase 2 database and Supabase implementation is in place locally. See `docs/SUPABASE_SETUP.md`
+for migrations, security tests, fixtures, and hosted setup. Next: Phase 3 — public website.
 
 Build the application incrementally according to:
 
