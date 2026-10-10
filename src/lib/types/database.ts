@@ -261,7 +261,13 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "booking_availability":
+            "add_admin_time_off":
+{ Args: { "p_barber": string,"p_business": string,"p_end": string,"p_reason": string,"p_start": string }; Returns: undefined
+                           },
+"admin_appointment_counts":
+{ Args: { "p_business": string }; Returns: Json
+                           },
+"booking_availability":
 { Args: { "p_barber": string,"p_business": string,"p_date": string,"p_service": string }; Returns: Json
                            },
 "booking_slots":
@@ -271,6 +277,43 @@ isOneToOne: false
                            },
 "create_guest_booking":
 { Args: { "p_barber": string,"p_business": string,"p_email": string,"p_name": string,"p_notes": string,"p_phone": string,"p_request": string,"p_service": string,"p_starts_at": string }; Returns: string
+                           },
+"list_admin_appointments":
+{ Args: { "p_barber": string,"p_business": string,"p_from": string,"p_page": number,"p_status": Database["public"]['Enums']["appointment_status"],"p_to": string,"p_upcoming"?: boolean }; Returns: {
+              "barber_id": string,
+"business_id": string,
+"created_at": string,
+"currency": string,
+"customer_email": string,
+"customer_name": string,
+"customer_notes": string,
+"customer_phone": string,
+"duration_minutes": number,
+"ends_at": string,
+"id": string,
+"price_minor": number,
+"reference_code": string,
+"request_id": string | null,
+"service_id": string,
+"service_name": string,
+"starts_at": string,
+"status": Database["public"]['Enums']["appointment_status"],
+"updated_at": string
+            }[]
+                          SetofOptions: {
+        from: "*"
+        to: "appointments"
+        isOneToOne: false
+        isSetofReturn: true
+      } },
+"manage_admin_appointment":
+{ Args: { "p_barber": string,"p_business": string,"p_email": string,"p_expected": string,"p_id": string,"p_local_start": string,"p_name": string,"p_notes": string,"p_phone": string,"p_request": string,"p_service": string,"p_status": Database["public"]['Enums']["appointment_status"] }; Returns: string
+                           },
+"replace_weekly_hours":
+{ Args: { "p_barber": string,"p_business": string,"p_intervals": Json }; Returns: undefined
+                           },
+"set_barber_services":
+{ Args: { "p_barber": string,"p_business": string,"p_services": (string)[] }; Returns: undefined
                            }
           }
           Enums: {

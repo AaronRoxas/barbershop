@@ -1,6 +1,6 @@
 # Architecture
 
-This document records decisions from Phases 1–4. Application code should follow it. Update this file when a decision changes.
+This document records decisions from Phases 1–5. Application code should follow it. Update this file when a decision changes.
 
 ## Product shape
 
@@ -86,12 +86,27 @@ of slots without customer data. The exclusion constraint handles competing booki
 and advisory locks make retries idempotent. A signed browser cookie gates confirmation rendering,
 which uses a restricted projection without customer contact details. See `docs/BOOKING.md`.
 
+## Shop administration
+
+Phase 5 uses Supabase email/password Auth with an admin-only session-refresh proxy. Every protected
+query/page/action checks the current user and membership through `src/lib/auth/admin.ts`. Owners
+manage catalog, schedules, images and shop settings through authenticated clients and RLS; staff
+manage appointments. Tenant identity comes from server configuration. Admin responses are private,
+uncached and excluded from indexing. Invitation/recovery token verification supports password setup.
+
+Authenticated appointment writes go through a membership-checked definer RPC with a locked search
+path. Direct INSERT/UPDATE grants are revoked. Row locks and expected timestamps prevent lost edits.
+Guest and admin scheduling share a private availability function; reschedules exclude their own
+appointment and retain snapshots when the service is unchanged. Terminal statuses preserve history.
+Owner-only RPCs replace hours and service assignments atomically. See `docs/ADMIN.md` for workflows,
+account provisioning and verification. Notifications remain Phase 6.
+
 ## Implementation phases
 
 1. Project setup (complete)
 2. Database and Supabase (implemented locally; hosted setup is account-dependent)
 3. Public website (complete for the reference shop)
 4. Booking system (implemented and verified locally)
-5. Admin dashboard
+5. Admin dashboard (implemented and verified locally)
 6. Notifications
 7. Testing, security, SEO, performance, polish

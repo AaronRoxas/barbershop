@@ -89,7 +89,7 @@ select is((select count(*) from testimonials where business_id = 'b0000000-0000-
 select throws_ok($$insert into testimonials (business_id, customer_display_name, quote)
   values ('b0000000-0000-0000-0000-000000000001', 'Staff', 'Denied fixture')$$,
   '42501', null, 'Staff cannot publish reviews');
-select lives_ok($$update appointments set customer_notes = 'Staff edit' where business_id = 'b0000000-0000-0000-0000-000000000001'$$, 'Staff can manage own appointments');
+select throws_ok($$update appointments set customer_notes = 'Staff edit' where business_id = 'b0000000-0000-0000-0000-000000000001'$$, '42501', null, 'Staff must manage appointments through validated RPC');
 with changed as (update services set price_minor = 1 where business_id = 'b0000000-0000-0000-0000-000000000001' returning id)
 select is((select count(*) from changed), 0::bigint, 'Staff cannot manage catalog');
 select ok(not private.can_manage_business_image('b0000000-0000-0000-0000-000000000001/staff.webp'), 'Staff cannot upload marketing images');

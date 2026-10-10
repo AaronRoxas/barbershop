@@ -86,7 +86,8 @@ It never displays customer names, email, phone, or notes. Knowing the reference 
 authorize lookup. Cookies authorize only the latest booking in that browser; an older reference or
 another browser shows contact instructions. Confirmation pages are not indexed and set no-referrer.
 
-Changes/cancellations direct customers to the shop. Admin management remains Phase 5. Email and
+Changes/cancellations direct customers to the shop. Staff manage appointments through the Phase 5
+dashboard described in `ADMIN.md`. Email and
 reminders remain Phase 6; the booking flow does not promise an email. Automated abuse prevention
 and deployment-specific rate limiting should be assessed in Phase 7 before opening a live shop.
 

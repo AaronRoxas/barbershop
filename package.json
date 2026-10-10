@@ -14,8 +14,10 @@
     "db:test": "supabase test db",
     "db:test:integration": "node scripts/test-local-database.mjs",
     "db:test:booking": "node scripts/test-booking.mjs",
+    "db:test:admin": "node scripts/test-admin.mjs",
     "db:types": "node scripts/generate-db-types.mjs",
-    "db:env": "node scripts/configure-local-env.mjs"
+    "db:env": "node scripts/configure-local-env.mjs",
+    "admin:local": "node scripts/create-local-admin.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.0",

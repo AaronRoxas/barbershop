@@ -25,7 +25,7 @@ export async function createServerSupabaseClient() {
               cookieStore.set(name, value, options);
             });
           } catch {
-            // Server Components cannot write cookies. Phase 5 will add the session-refresh proxy.
+            // Server Components cannot write cookies; the admin proxy refreshes sessions.
           }
         },
       },

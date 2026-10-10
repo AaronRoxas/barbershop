@@ -70,8 +70,8 @@ does not provision a cloud project or contain cloud credentials.
 Membership changes and tenant creation are intentionally restricted to trusted server/admin SQL.
 Owners cannot grant themselves access to another shop through the API. Revoke access by removing
 the membership row. Staff can manage appointments; owners also manage catalog and schedules.
-The login UI and session-refresh proxy will be implemented in Phase 5 before admin functionality
-is exposed.
+The login UI, admin session-refresh proxy, invitation/recovery password setup and protected management
+pages are implemented in Phase 5. See `ADMIN.md` for account setup and email template configuration.
 
 ## Data model
 
@@ -104,6 +104,10 @@ must match the bounds. A partial GiST exclusion constraint prevents overlap for 
 `confirmed` appointments with the same business/barber, including concurrent writes. Ranges
 are half-open, so back-to-back bookings are permitted. Cancellation releases the slot while
 preserving history. SQLSTATE `23P01` becomes the friendly slot-unavailable error in Phase 4.
+
+Authenticated appointment inserts/updates are now restricted to the Phase 5 membership-checked admin
+RPC. Staff and owners cannot bypass scheduling checks with direct table writes. Its row lock and
+expected timestamp prevent lost edits; same-service reschedules retain snapshots. See `ADMIN.md`.
 
 The constraint protects occupancy. Phase 4 validates business hours, active assignments,
 notice/window settings, customer inputs, and availability through server-only booking RPCs.

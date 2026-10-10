@@ -4,12 +4,13 @@ Reusable, multi-tenant appointment booking for barbershops. See `docs/PROJECT_SP
 
 ## Current phase
 
-Phase 4 implements guest booking with live availability, server validation, concurrency protection,
-and private confirmation, alongside the public website and multi-tenant Supabase database.
+Phase 5 adds protected shop administration: appointments, services, barbers, availability,
+shop details and marketing image uploads, alongside guest booking and the public website.
 See [Supabase setup](docs/SUPABASE_SETUP.md) for local startup, database checks, and hosted configuration.
 See [public website](docs/PUBLIC_WEBSITE.md) for content configuration and browser checks.
 See [booking](docs/BOOKING.md) for scheduling rules, privacy, migration setup, and verification.
-Next: Phase 5, the admin dashboard.
+See [admin dashboard](docs/ADMIN.md) for account setup, permissions and management workflows.
+Next: Phase 6, notifications.
 
 ## Setup
 
@@ -38,3 +39,5 @@ Open [http://localhost:3000](http://localhost:3000).
 - `npm run build` — production build
 - `npm run test:e2e` — local production build and desktop/mobile browser checks
 - `npm run db:test:booking` — local scheduling, validation, retry, and concurrency checks
+- `npm run db:test:admin` — local role, scheduling, snapshot, status and concurrent-edit checks
+- `npm run admin:local -- --email owner@example.com` — create a local owner with a masked password prompt

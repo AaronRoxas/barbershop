@@ -9,6 +9,7 @@ function backendUrl() {
 
 const backend = backendUrl();
 const nextConfig: NextConfig = {
+  experimental: { serverActions: { bodySizeLimit: "6mb" } },
   images: {
     remotePatterns: backend ? [{
       protocol: backend.protocol === "https:" ? "https" : "http",

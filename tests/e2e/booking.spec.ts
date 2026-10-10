@@ -42,8 +42,8 @@ test("guest booking works with stale-slot recovery and private confirmation", as
     await accessible();
     await page.getByRole("button", { name: "Continue", exact: true }).click();
     await page.getByLabel("Full name").fill("Browser Test");
-    await page.getByLabel("Email", { exact: true }).fill(email);
-    await page.getByLabel("Phone", { exact: true }).fill("+639123456789");
+    await page.getByLabel("Email *", { exact: true }).fill(email);
+    await page.getByLabel("Phone *", { exact: true }).fill("+639123456789");
     await page.getByLabel("Notes (optional)").fill("Test appointment");
     await accessible();
     await page.getByRole("button", { name: "Review booking" }).click();
@@ -63,7 +63,7 @@ test("guest booking works with stale-slot recovery and private confirmation", as
     await page.locator('input[name="period"]:enabled').first().check();
     await page.getByRole("combobox", { name: "Appointment time" }).selectOption({ index: 1 });
     await page.getByRole("button", { name: "Continue", exact: true }).click();
-    await expect(page.getByLabel("Email", { exact: true })).toHaveValue(email);
+    await expect(page.getByLabel("Email *", { exact: true })).toHaveValue(email);
     await page.getByRole("button", { name: "Review booking" }).click();
     await page.getByRole("button", { name: "Book appointment", exact: true }).click();
     await expect(page).toHaveURL(/\/book\/confirmed\/BRB-[A-F0-9]{32}$/);
