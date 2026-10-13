@@ -151,14 +151,14 @@ isOneToOne: false
                   ]
                 },"businesses": {
                   Row: {
-                    "address": string,"created_at": string,"currency": string,"description": string,"email": string,"gallery_image_paths": (string)[],"hero_image_path": string | null,"id": string,"is_active": boolean,"maximum_booking_days": number,"minimum_notice_minutes": number,"name": string,"philosophy": string,"phone": string,"slot_interval_minutes": number,"slug": string,"social_links": NonNullable<Json>,"story": string,"timezone": string,"updated_at": string
+                    "address": string,"created_at": string,"currency": string,"description": string,"email": string,"gallery_image_paths": (string)[],"hero_image_path": string | null,"id": string,"is_active": boolean,"landing_content": NonNullable<Json>,"maximum_booking_days": number,"minimum_notice_minutes": number,"name": string,"philosophy": string,"phone": string,"slot_interval_minutes": number,"slug": string,"social_links": NonNullable<Json>,"story": string,"timezone": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "address"?: string,"created_at"?: string,"currency"?: string,"description"?: string,"email"?: string,"gallery_image_paths"?: (string)[],"hero_image_path"?: string | null,"id"?: string,"is_active"?: boolean,"maximum_booking_days"?: number,"minimum_notice_minutes"?: number,"name": string,"philosophy"?: string,"phone"?: string,"slot_interval_minutes"?: number,"slug": string,"social_links"?: NonNullable<Json>,"story"?: string,"timezone"?: string,"updated_at"?: string
+                    "address"?: string,"created_at"?: string,"currency"?: string,"description"?: string,"email"?: string,"gallery_image_paths"?: (string)[],"hero_image_path"?: string | null,"id"?: string,"is_active"?: boolean,"landing_content"?: NonNullable<Json>,"maximum_booking_days"?: number,"minimum_notice_minutes"?: number,"name": string,"philosophy"?: string,"phone"?: string,"slot_interval_minutes"?: number,"slug": string,"social_links"?: NonNullable<Json>,"story"?: string,"timezone"?: string,"updated_at"?: string
                   }
                   Update: {
-                    "address"?: string,"created_at"?: string,"currency"?: string,"description"?: string,"email"?: string,"gallery_image_paths"?: (string)[],"hero_image_path"?: string | null,"id"?: string,"is_active"?: boolean,"maximum_booking_days"?: number,"minimum_notice_minutes"?: number,"name"?: string,"philosophy"?: string,"phone"?: string,"slot_interval_minutes"?: number,"slug"?: string,"social_links"?: NonNullable<Json>,"story"?: string,"timezone"?: string,"updated_at"?: string
+                    "address"?: string,"created_at"?: string,"currency"?: string,"description"?: string,"email"?: string,"gallery_image_paths"?: (string)[],"hero_image_path"?: string | null,"id"?: string,"is_active"?: boolean,"landing_content"?: NonNullable<Json>,"maximum_booking_days"?: number,"minimum_notice_minutes"?: number,"name"?: string,"philosophy"?: string,"phone"?: string,"slot_interval_minutes"?: number,"slug"?: string,"social_links"?: NonNullable<Json>,"story"?: string,"timezone"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     

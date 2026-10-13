@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { APPOINTMENT_STATUSES } from "@/lib/types/appointment";
+import { maxWholePrice } from "@/lib/money";
 
 const name = z.string().trim().min(1).max(120);
 const text = z.string().trim().max(2000);
@@ -13,11 +14,13 @@ export const appointmentSchema = z.object({
   name, email: z.email().max(254), phone: z.string().trim().min(3).max(40).regex(/^[+\d() .-]+$/), notes: text,
   request: z.uuid(),
 });
-export const serviceSchema = z.object({ id: optionalId, name, description: text,
-  price_minor: integer(0, 2147483647), duration_minutes: integer(5, 480), sort_order: integer(-10000, 10000),
+export const serviceSchema = (currency: string) => z.object({ id: optionalId, name, description: text,
+  price: z.string().trim().min(1, "Enter a price.").pipe(z.coerce.number<string>()
+    .int("Enter a whole-number price.").min(0, "Price cannot be negative.").max(maxWholePrice(currency), "Price is too large.")),
+  duration_minutes: integer(5, 480), sort_order: integer(-10000, 10000),
   is_active: z.boolean() });
 export const barberSchema = z.object({ id: optionalId, name, biography: text, specialty: z.string().trim().max(500),
-  sort_order: integer(-10000, 10000), is_active: z.boolean() });
+  is_active: z.boolean() });
 const social = z.union([z.literal(""), z.url().max(500).refine((v) => {
   const url = new URL(v); return url.protocol === "https:" && !url.username && !url.password;
 }, "Use an HTTPS social link.")]);

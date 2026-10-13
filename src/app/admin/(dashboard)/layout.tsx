@@ -10,7 +10,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <nav className="admin-nav" aria-label="Administration">
       <Link href="/admin">Overview</Link><Link href="/admin/appointments">Appointments</Link>
       {role === "owner" && <><Link href="/admin/services">Services</Link><Link href="/admin/barbers">Barbers</Link>
-        <Link href="/admin/schedule">Availability</Link><Link href="/admin/settings">Shop details</Link></>}
+        <Link href="/admin/schedule">Availability</Link><Link href="/admin/landing">Landing page</Link><Link href="/admin/settings">Shop details</Link></>}
     </nav>{children}
   </main>;
 }

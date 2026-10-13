@@ -1,27 +1,18 @@
 import { getAdminSchedule } from "@/lib/db/admin";
 import { AdminForm } from "@/components/admin/form";
 import { Field, Hidden, SelectField } from "@/components/admin/fields";
-import { saveHours, saveOverride, saveTimeOff, deleteScheduleEntry } from "@/app/admin/actions";
-import { WEEKDAYS, formatTime } from "@/lib/site/format";
+import { saveOverride, saveTimeOff, deleteScheduleEntry } from "@/app/admin/actions";
+import { formatTime } from "@/lib/site/format";
 import { appointmentDate, appointmentTime } from "@/lib/time/booking";
-import type { Tables } from "@/lib/types/database";
+import { ScheduleEditor } from "@/components/admin/schedule-editor";
 
-function WeeklyHours({ barber = "", hours }: { barber?: string; hours: Pick<Tables<"business_hours">, "weekday" | "opens_at" | "closes_at">[] }) {
-  return <AdminForm action={saveHours} submit="Save weekly hours"><Hidden name="barber" value={barber} />
-    <p className="fine-print">Use 24-hour intervals separated by commas, e.g. 09:00-12:00, 13:00-19:00. Leave a day empty for closed. Overnight hours must be split across days.</p>
-    <div className="admin-grid">{WEEKDAYS.map((day, i) => <Field key={day} label={day} name={`day${i + 1}`} maxLength={500}
-      defaultValue={hours.filter((h) => h.weekday === i + 1).map((h) => `${h.opens_at.slice(0, 5)}-${h.closes_at.slice(0, 5)}`).join(", ")} />)}</div>
-  </AdminForm>;
-}
 export default async function SchedulePage() {
   const { business, barbers, shopHours, barberHours, overrides, timeOff } = await getAdminSchedule();
   const barberOptions = <><option value="">Whole shop</option>{barbers.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</>;
   const target = (id: string | null) => id ? barbers.find((b) => b.id === id)?.name ?? "Barber" : "Whole shop";
   return <section className="admin-section"><h1>Availability</h1><p>All dates and times use {business.timezone}. Bookings require both shop and barber hours.</p>
     <p className="fine-print">Schedule changes affect new bookings. They do not cancel existing appointments. Review affected bookings and reschedule or cancel them individually.</p>
-    <article className="admin-record"><h2>Shop hours</h2><WeeklyHours hours={shopHours} /></article>
-    {barbers.map((b) => <details key={b.id} className="admin-details"><summary>{b.name} — weekly hours{b.is_active ? "" : " (disabled)"}</summary>
-      <WeeklyHours barber={b.id} hours={barberHours.filter((h) => h.barber_id === b.id)} /></details>)}
+    <ScheduleEditor barbers={barbers} shopHours={shopHours} barberHours={barberHours} />
     <article className="admin-record"><h2>Special dates</h2><p>Close a date or replace its usual hours. Time off can add breaks within special hours.</p>
       <AdminForm action={saveOverride} submit="Add special date"><div className="admin-grid">
         <SelectField label="Applies to" name="barber" value="">{barberOptions}</SelectField>

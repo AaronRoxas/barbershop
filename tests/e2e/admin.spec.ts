@@ -3,6 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { createClient, type WebSocketLikeConstructor } from "@supabase/supabase-js";
 import { randomUUID } from "node:crypto";
 import WebSocket from "ws";
+import { currencyScale, maxWholePrice } from "@/lib/money";
 
 test("owners manage the catalog and appointments; staff and guests respect access boundaries", async ({ page }, testInfo) => {
   test.setTimeout(90000);
@@ -29,6 +30,9 @@ test("owners manage the catalog and appointments; staff and guests respect acces
     if (testInfo.project.name === "mobile") await page.setViewportSize({ width: 320, height: 900 });
     await page.goto("/admin/appointments");
     await expect(page).toHaveURL(/\/admin\/login/);
+    await expect(page.locator(".site-header, .site-footer")).toHaveCount(0);
+    await expect(page.getByRole("navigation", { name: "Admin site", exact: true })).toBeVisible();
+    await expect(page.locator(".admin-site-footer")).toBeVisible();
     await accessible();
     await page.getByLabel("Email", { exact: true }).fill(email);
     await page.getByLabel("Password").fill(password);
@@ -50,18 +54,61 @@ test("owners manage the catalog and appointments; staff and guests respect acces
     await page.getByText("Add a service", { exact: true }).click();
     const create = page.locator("details").filter({ has: page.getByText("Add a service", { exact: true }) });
     await create.getByLabel("Service name").fill(serviceName);
-    await create.getByLabel("Price (minor currency units)").fill("12345");
+    const price = create.getByLabel(`Price (${business.currency})`, { exact: true });
     await create.getByLabel("Duration (minutes)").fill("30");
     await create.getByLabel("Display order").fill("9999");
+    await price.fill("-1");
+    await expect(price).toHaveValue("");
+    await price.pressSequentially("-123");
+    await expect(price).toHaveValue("123");
+    for (const value of ["-500", "123.45"]) {
+      expect(await price.evaluate((input, text) => {
+        const clipboardData = new DataTransfer();
+        clipboardData.setData("text/plain", text);
+        return input.dispatchEvent(new ClipboardEvent("paste", { clipboardData, bubbles: true, cancelable: true }));
+      }, value)).toBe(false);
+      await expect(price).toHaveValue("123");
+    }
+    await price.fill("0");
+    await price.press("ArrowDown");
+    await expect(price).toHaveValue("0");
+    // Bypass input handlers and browser validation to verify the server independently.
+    await create.locator("form").evaluate((form) => { (form as HTMLFormElement).noValidate = true; });
+    for (const [value, message] of [["-1", "Price cannot be negative"], ["123.45", "Enter a whole-number price"], ["", "Enter a price"], [String(maxWholePrice(business.currency) + 1), "Price is too large"]]) {
+      await create.getByLabel("Service name").fill(serviceName);
+      await create.getByLabel("Duration (minutes)").fill("30");
+      await create.getByLabel("Display order").fill("9999");
+      await price.evaluate((input, submitted) => { (input as HTMLInputElement).value = submitted; }, value);
+      await create.getByRole("button", { name: "Create service" }).click();
+      await expect(create.getByRole("alert")).toContainText(message);
+      expect(verify(await admin.from("services").select("id").eq("business_id", business.id).eq("name", serviceName))).toEqual([]);
+    }
+    await create.getByLabel("Service name").fill(serviceName);
+    await create.getByLabel("Duration (minutes)").fill("30");
+    await create.getByLabel("Display order").fill("9999");
+    await price.fill("123");
     await create.getByRole("button", { name: "Create service" }).click();
     await expect(page.getByRole("heading", { name: serviceName })).toBeVisible();
     const s = verify(await admin.from("services").select("*").eq("business_id", business.id).eq("name", serviceName).single())!;
     serviceId = s.id;
+    expect(s.price_minor).toBe(123 * currencyScale(business.currency));
     const record = page.locator("article").filter({ has: page.getByRole("heading", { name: serviceName }) });
-    await record.locator("summary").filter({ hasText: /^Upload image$/ }).click();
-    await record.getByLabel(/Image \(JPEG/).setInputFiles({ name: "test.png", mimeType: "image/png", buffer: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aSq0AAAAASUVORK5CYII=", "base64") });
-    await record.getByRole("button", { name: "Upload image" }).click();
-    await expect(record.getByRole("status")).toContainText("Image uploaded");
+    await record.locator("summary").filter({ hasText: /^Edit service$/ }).click();
+    await expect(record.getByLabel(`Price (${business.currency})`, { exact: true })).toHaveValue("123");
+    await record.getByLabel(`Price (${business.currency})`, { exact: true }).fill("-250");
+    await expect(record.getByLabel(`Price (${business.currency})`, { exact: true })).toHaveValue("");
+    await record.getByLabel(`Price (${business.currency})`, { exact: true }).fill("0");
+    await record.getByRole("button", { name: "Save changes", exact: true }).click();
+    await expect(record.getByRole("status")).toContainText("Service saved");
+    expect(verify(await admin.from("services").select("price_minor").eq("id", serviceId).single())!.price_minor).toBe(0);
+    await record.getByLabel(`Price (${business.currency})`, { exact: true }).fill("250");
+    await record.getByRole("button", { name: "Save changes", exact: true }).click();
+    await expect.poll(async () => verify(await admin.from("services").select("price_minor").eq("id", serviceId).single())!.price_minor).toBe(250 * currencyScale(business.currency));
+    await record.locator("summary").filter({ hasText: /^Upload service menu image$/ }).click();
+    await expect(record.getByText(`Appears beside ${serviceName}`, { exact: false })).toContainText("Services page");
+    await record.getByLabel(/Service menu image \(JPEG/).setInputFiles({ name: "test.png", mimeType: "image/png", buffer: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aSq0AAAAASUVORK5CYII=", "base64") });
+    await record.getByRole("button", { name: "Upload service menu image", exact: true }).click();
+    await expect(record.getByText("Image uploaded.", { exact: true })).toBeVisible();
     uploaded = verify(await admin.from("services").select("image_path").eq("id", serviceId).single())!.image_path;
     await accessible();
     const barber = verify(await admin.from("barbers").select("*").eq("business_id", business.id).eq("name", "Alex").single())!;
@@ -114,17 +161,29 @@ test("owners manage the catalog and appointments; staff and guests respect acces
     await expect(page.getByRole("heading", { name: barberName })).toBeVisible();
     fixtureBarber = verify(await admin.from("barbers").select("id").eq("business_id", business.id).eq("name", barberName).single())!.id;
     const barberRecord = page.locator("article").filter({ has: page.getByRole("heading", { name: barberName }) });
+    await barberRecord.locator("summary").filter({ hasText: /^Upload barber profile photo$/ }).click();
+    await expect(barberRecord.getByText(`Appears on ${barberName}’s profile card`, { exact: false })).toContainText("Barbers page");
+    await barberRecord.locator("summary").filter({ hasText: "Edit profile" }).click();
+    await expect(barberRecord.getByLabel("Display order")).toHaveCount(0);
+    verify(await admin.from("barbers").update({ sort_order: 73 }).eq("id", fixtureBarber));
+    await barberRecord.getByLabel("Specialty").fill("Classic cuts");
+    await barberRecord.getByRole("button", { name: "Save changes" }).first().click();
+    await expect(barberRecord.getByRole("status")).toContainText("Barber saved");
+    expect(verify(await admin.from("barbers").select("sort_order").eq("id", fixtureBarber).single())!.sort_order).toBe(73);
     await barberRecord.locator("summary").filter({ hasText: "Assign services" }).click();
     await barberRecord.getByLabel(serviceName, { exact: true }).check();
     await barberRecord.getByRole("button", { name: "Save changes" }).last().click();
-    await expect(barberRecord.getByRole("status")).toContainText("Assigned services saved");
+    await expect(barberRecord.getByText("Assigned services saved.", { exact: true })).toBeVisible();
     await accessible();
     await page.goto("/admin/schedule");
-    const weekly = page.locator("details").filter({ has: page.locator("summary").filter({ hasText: barberName }) });
-    await weekly.locator("summary").click();
-    await weekly.getByLabel("Monday", { exact: true }).fill("09:00-12:00, 13:00-19:00");
+    await page.getByLabel("Schedule for", { exact: true }).selectOption(fixtureBarber!);
+    const weekly = page.locator(".schedule-editor > div:not([hidden])").filter({ has: page.locator("form") });
+    await weekly.getByRole("switch", { name: "Monday working", exact: true }).check();
+    await weekly.getByLabel("Monday period 1 end hour", { exact: true }).selectOption("7");
+    await weekly.locator(".schedule-row").first().getByText("More", { exact: true }).click();
+    await weekly.getByRole("button", { name: "Add break", exact: true }).click();
     await weekly.getByRole("button", { name: "Save weekly hours" }).click();
-    await expect(weekly.getByRole("status")).toContainText("Weekly hours saved");
+    await expect(weekly.getByText("Weekly hours saved.", { exact: true })).toBeVisible();
     const special = page.locator("article").filter({ has: page.getByRole("heading", { name: "Special dates" }) });
     await special.getByLabel("Applies to").selectOption(fixtureBarber!);
     await special.getByLabel("Date", { exact: true }).fill("2035-01-01");
@@ -142,9 +201,41 @@ test("owners manage the catalog and appointments; staff and guests respect acces
     await off.locator(".admin-schedule-entry").filter({ hasText: barberName }).getByRole("button", { name: "Remove" }).click();
     await expect(off.locator(".admin-schedule-entry").filter({ hasText: barberName })).toHaveCount(0);
     await accessible();
-    await page.goto("/admin/settings"); await accessible();
+    await page.goto("/admin/settings");
+    await page.locator("summary").filter({ hasText: /shop hero image$/ }).click();
+    await expect(page.getByText("Appears as the large welcome image", { exact: false })).toContainText("Our story page");
+    await accessible();
+    await page.goto("/admin/landing");
+    await page.getByRole("textbox", { name: "Hero heading", exact: true }).fill("");
+    await page.getByRole("button", { name: "Save landing page" }).click();
+    await expect(page.locator("main").getByRole("alert")).toContainText("Hero heading is required");
+    await page.getByRole("textbox", { name: "Hero heading", exact: true }).fill(`A custom cut ${suffix}`);
+    await page.getByRole("textbox", { name: "Story body", exact: true }).fill("A story edited by the owner.");
+    await page.getByRole("textbox", { name: "Footer heading", exact: true }).fill("Your next great visit.");
+    await page.getByRole("button", { name: "Save landing page" }).click();
+    await expect(page.getByRole("status")).toContainText("Landing page updated");
+    await accessible();
+    await page.screenshot({ path: testInfo.outputPath("admin-landing.png"), fullPage: true });
+    await page.goto("/");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(`A custom cut ${suffix}`);
+    await expect(page.getByText("A story edited by the owner.", { exact: true })).toBeVisible();
+    await expect(page.locator(".site-footer")).toContainText("Your next great visit.");
+    await expect(page.locator(".admin-site-header, .admin-site-footer")).toHaveCount(0);
+    await expect(page.locator(".site-header")).toBeVisible();
+    verify(await admin.from("businesses").update({ landing_content: business.landing_content }).eq("id", business.id));
+    await page.goto("/admin/barbers");
+    await barberRecord.locator("summary").filter({ hasText: /^Delete barber$/ }).click();
+    await barberRecord.getByLabel(`Permanently delete ${barberName}`, { exact: true }).check();
+    await barberRecord.getByRole("button", { name: "Delete barber permanently" }).click();
+    await expect(page.getByRole("heading", { name: barberName })).toHaveCount(0);
+    expect(verify(await admin.from("barber_hours").select("id").eq("barber_id", fixtureBarber))).toEqual([]);
+    const historicalBarber = page.locator("article").filter({ has: page.getByRole("heading", { name: "Alex", exact: true }) });
+    await historicalBarber.locator("summary").filter({ hasText: /^Delete barber$/ }).click();
+    await historicalBarber.getByLabel("Permanently delete Alex", { exact: true }).check();
+    await historicalBarber.getByRole("button", { name: "Delete barber permanently" }).click();
+    await expect(historicalBarber.getByRole("alert")).toContainText("appointment history and cannot be deleted");
     verify(await admin.from("business_members").update({ role: "staff" }).eq("business_id", business.id).eq("user_id", user.id));
-    for (const route of ["services", "barbers", "schedule", "settings"]) {
+    for (const route of ["services", "barbers", "schedule", "settings", "landing"]) {
       await page.goto(`/admin/${route}`);
       await expect(page).toHaveURL(/\/admin\?access=owner/);
     }
@@ -156,6 +247,7 @@ test("owners manage the catalog and appointments; staff and guests respect acces
     await page.getByRole("button", { name: "Sign out of this account" }).click();
     await expect(page).toHaveURL(/\/admin\/login$/);
   } finally {
+    verify(await admin.from("businesses").update({ landing_content: business.landing_content }).eq("id", business.id));
     verify(await admin.from("appointments").delete().eq("business_id", business.id).eq("customer_email", customerEmail));
     if (serviceId) verify(await admin.from("services").delete().eq("business_id", business.id).eq("id", serviceId));
     if (fixtureBarber) verify(await admin.from("barbers").delete().eq("business_id", business.id).eq("id", fixtureBarber));

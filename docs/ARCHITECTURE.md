@@ -101,12 +101,19 @@ appointment and retain snapshots when the service is unchanged. Terminal statuse
 Owner-only RPCs replace hours and service assignments atomically. See `docs/ADMIN.md` for workflows,
 account provisioning and verification. Notifications remain Phase 6.
 
+Owners customize public landing-page and footer copy at `/admin/landing`, stored in the public
+`businesses.landing_content` JSON object under existing owner RLS. Shared defaults preserve existing
+shop content; the server validates edits and renders plain text. Public routes use the `(public)`
+layout, while admin routes have their own header/footer. Barber deletion is owner-only and confirmed;
+appointment foreign keys protect history. Barber profile edits preserve the existing sort order
+without exposing an ordering field.
+
 ## Implementation phases
 
 1. Project setup (complete)
 2. Database and Supabase (implemented locally; hosted setup is account-dependent)
 3. Public website (complete for the reference shop)
 4. Booking system (implemented and verified locally)
-5. Admin dashboard (implemented and verified locally)
+5. Admin dashboard (implemented and verified locally, including landing-page information editing, barber deletion with appointment-history protection, separate admin/public navigation bars and footers, and removal of display order from barber profile editing)
 6. Notifications
 7. Testing, security, SEO, performance, polish

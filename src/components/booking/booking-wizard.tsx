@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { submitBooking } from "@/app/book/actions";
+import { submitBooking } from "@/app/(public)/book/actions";
 import { bookingSchema } from "@/lib/validation/booking";
 import { addDays, appointmentDate, appointmentTime, TIME_PERIODS, timePeriod, type TimePeriod } from "@/lib/time/booking";
 import { BookingCalendar, monthDates, monthStart } from "@/components/booking/booking-calendar";

@@ -25,6 +25,6 @@ export default async function SettingsPage() {
       </fieldset>
       <fieldset><legend>Social links</legend><div className="admin-grid">{["instagram", "facebook", "tiktok"].map((name) => <Field key={name} label={name.charAt(0).toUpperCase() + name.slice(1)} name={name} type="url" maxLength={500} defaultValue={typeof links[name] === "string" ? links[name] as string : ""} />)}</div></fieldset>
       <label className="admin-checkbox"><input name="is_active" type="checkbox" defaultChecked={b.is_active} />Shop is public and accepting bookings</label>
-    </AdminForm><ImageUpload kind="hero" id={b.id} businessId={b.id} path={b.hero_image_path} />
+    </AdminForm><ImageUpload kind="hero" id={b.id} businessId={b.id} path={b.hero_image_path} name={b.name} />
   </section>;
 }

@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:e2e": "node scripts/test-public-site.mjs",
+    "test:schedule": "node scripts/test-weekly-schedule.mjs",
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:lint": "supabase db lint --local --level warning --fail-on warning",

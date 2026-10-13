@@ -2,9 +2,22 @@
 
 `/admin/login` signs in Supabase Auth users with email and password. `/admin` and all management pages require a current membership in the configured shop. Customers still book as guests.
 
+## Landing page and layout
+
+Owners use `/admin/landing` to edit the welcome message, section headings, story introduction/body,
+values, and public footer, and upload the hero image. Text is validated and rendered as plain text;
+line breaks are preserved. Existing shops keep the original copy until edited. Contact details,
+social links, shop description and the full story remain under Shop details. Services, barber profiles,
+and opening hours are managed in their respective dashboard pages. Testimonials retain their trusted
+SQL workflow. Saving public content refreshes the public layout and pages.
+
+Public routes live under `src/app/(public)` and share their own navigation and footer. All `/admin`
+pages, including login and password setup, use an admin header/footer; authenticated dashboard pages
+also show role-appropriate management navigation.
+
 ## Setup
 
-Apply all migrations through `20261008000900_booking_private_access.sql` and regenerate types:
+Apply all migrations through `20261013011229_landing_page_content.sql` and regenerate types:
 
 ```powershell
 npx supabase migration up --local
@@ -47,8 +60,10 @@ Local email testing uses the Supabase mail inbox. Hosted email configuration rem
 | Create/edit/reschedule and change appointment status | Yes | Yes |
 | Manage services, prices, durations, images, display order | No | Yes |
 | Manage barber profiles/photos and assigned services | No | Yes |
+| Delete unused barber profiles | No | Yes |
 | Manage shop/barber hours, special dates, time off | No | Yes |
 | Manage public shop information and booking settings | No | Yes |
+| Customize landing-page text and public footer | No | Yes |
 | Provision memberships or additional tenants through the UI | No | No |
 
 `requireAdmin` verifies the Auth user and rereads the configured business and membership at the
@@ -99,12 +114,35 @@ appointment actions; notifications remain Phase 6.
 
 ## Catalog, schedules and images
 
-Service prices are integer minor units; the UI explains the configured currency's scale. Display order
-is explicit. Unused services can be deleted; services/barber assignments used by appointments are
+Service price forms accept nonnegative whole amounts in the shop currency (for example, `500` means
+PHP 500). Both the browser and server reject negative, fractional, missing and oversized prices;
+zero is allowed. The input also blocks minus signs, decimals and exponent notation while typing,
+rejects negative or fractional pasted values, and clears invalid values from other input methods.
+The server converts the submitted amount to integer minor units for storage and booking snapshots.
+Existing fractional prices are shown accurately and must be changed to a whole
+amount before saving that service; they are never silently rounded. Display order is explicit.
+Unused services can be deleted; services/barber assignments used by appointments are
 protected by foreign keys and should be disabled/retained. Barber service sets are replaced atomically;
 new barbers need assignments and hours before they can take bookings.
 
-Weekly hours accept multiple `HH:MM-HH:MM` intervals per day, with empty days closed. An owner-only RPC
+Barber profile forms do not expose display order. New profiles use the database default, and edits
+preserve their existing order. Owners can permanently delete unused barbers after checking the
+confirmation box. Deletion also removes their service assignments and schedules; uploaded photos
+remain in Storage. Any appointment history, including cancelled/completed bookings, blocks deletion
+and displays instructions to disable the barber instead. Database foreign keys enforce this rule
+even when a concurrent booking arrives during deletion.
+
+Weekly hours show one selected shop or barber schedule with compact rows and inline 12-hour time
+selectors. Shop days use Open/Closed; barber days use Working/Off. Copy opens a dialog with weekday
+and all-other-days shortcuts and an explicit replacement action. A contextual More menu adds hours
+or an editable 30-minute break. Periods stay chronologically ordered; invalid or overlapping times
+show inline errors and prevent saving. Closed days retain draft times when toggled back on.
+Barbers may copy saved shop hours without linking their shifts to later shop edits. Switching
+schedules preserves drafts. Unsaved indicators, cancel, and reload/link-navigation prompts protect
+edits. Changes apply only when saved; each schedule is saved separately.
+`npm run test:schedule` verifies the editor in isolation with a stubbed save action (no database
+access), including desktop/mobile layout, keyboard interactions, accessibility, and draft behavior.
+The editor submits multiple `HH:MM-HH:MM` intervals per day, with closed days empty. An owner-only RPC
 validates and replaces the complete weekly schedule atomically; overlapping or reversed intervals
 are rejected. Special dates replace weekly hours for the shop or one barber. Remove an existing date
 entry before adding a replacement. Time off uses shop-local start/end inputs, converted in PostgreSQL,
@@ -122,6 +160,10 @@ to accommodate multipart overhead. Failed record updates attempt to remove the j
 Replacing an image retains old objects; remove obsolete public assets through Storage when needed.
 The dashboard uploads service images, barber photos and the hero image. Gallery paths and testimonials
 retain their existing trusted SQL/Storage management workflow. Public images must never contain customer data.
+Each upload section identifies its destination: shop hero images appear on the landing and Our story
+pages; service images appear in the Services menu and when featured on the landing page; barber photos
+appear in the landing-page team section and on the Barbers page. Replacement labels, descriptions,
+and preview alt text identify the image and target shop, service, or barber.
 
 ## Verification
 
@@ -139,7 +181,11 @@ Admin integration tests create and clean up isolated local Auth users and busine
 staff/owner/outsider and cross-tenant permissions, direct-write denial, atomic schedule replacement,
 local-time conversion, idempotent create, snapshot preservation, conflicting/off-grid reschedules,
 time off, stale/concurrent edits, status transitions and historical assignment protection.
+They also verify owner-only landing-page updates, tenant isolation, public reads, and safe barber
+deletion with dependent schedule cleanup and appointment-history protection.
 Desktop/mobile browser tests cover login, membership denial/revocation, recovery/password setup,
 service creation and image upload, appointment creation/rescheduling/cancellation, barber creation and
 assignments, weekly hours, special dates/time off, owner page restrictions, accessibility and narrow
 screen overflow. Fixtures are removed after each run; no hosted data is used.
+The browser flows also cover separate public/admin headers and footers, landing-page validation and
+published text, preservation of barber sort order during profile edits, and successful/blocked deletion.

@@ -393,6 +393,13 @@ Booking system.
 
 Admin dashboard.
 
+Implemented requirements:
+
+- Allow owners to customize landing-page information from the admin dashboard.
+- Add a delete option for barber profiles, preserving appointment history and explaining when deletion is blocked.
+- Use separate navigation bars and footers for the admin dashboard and public landing page.
+- Remove the display-order field from the barber profile edit form.
+
 ### Phase 6
 
 Notifications.

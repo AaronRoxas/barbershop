@@ -36,6 +36,27 @@ try {
   check(await admin.from("barbers").insert({ id: barber, business_id: business, name: "Test barber" }));
   check(await admin.from("barber_services").insert({ business_id: business, barber_id: barber, service_id: service }));
   const owner = await account("owner"), staff = await account("staff"), outsider = await account(null);
+  const content = { hero_title: "A custom welcome", footer_title: "Come back soon" };
+  check(await owner.from("businesses").update({ landing_content: content }).eq("id", business).select("id").single());
+  assert.deepEqual(check(await guest.from("businesses").select("landing_content").eq("id", business).single()).landing_content, content);
+  for (const denied of [staff, outsider, guest]) {
+    const attempt = await denied.from("businesses").update({ landing_content: { hero_title: "Unauthorized" } }).eq("id", business).select("id");
+    assert.ok(attempt.error || attempt.data.length === 0, "Only owners may edit landing-page content.");
+  }
+  assert.deepEqual(check(await admin.from("businesses").select("landing_content").eq("id", business).single()).landing_content, content);
+  assert.equal(check(await owner.from("businesses").update({ landing_content: content }).eq("id", foreign).select("id")).length, 0);
+  assert.equal((await owner.from("businesses").update({ landing_content: [] }).eq("id", business)).error?.code, "23514");
+  const unusedBarber = randomUUID();
+  check(await owner.from("barbers").insert({ id: unusedBarber, business_id: business, name: "Unused barber" }));
+  check(await owner.from("barber_services").insert({ business_id: business, barber_id: unusedBarber, service_id: service }));
+  check(await owner.from("barber_hours").insert({ business_id: business, barber_id: unusedBarber, weekday, opens_at: "09:00", closes_at: "12:00" }));
+  for (const denied of [staff, outsider, guest]) {
+    const attempt = await denied.from("barbers").delete().eq("id", unusedBarber).select("id");
+    assert.ok(attempt.error || attempt.data.length === 0, "Only owners may delete barbers.");
+  }
+  assert.equal(check(await owner.from("barbers").delete().eq("id", unusedBarber).select("id")).length, 1);
+  assert.equal(check(await admin.from("barber_services").select("barber_id").eq("barber_id", unusedBarber)).length, 0);
+  assert.equal(check(await admin.from("barber_hours").select("id").eq("barber_id", unusedBarber)).length, 0);
   const hours = { p_business: business, p_barber: null, p_intervals: [{ weekday, opens_at: "09:00", closes_at: "12:00" }] };
   check(await owner.rpc("replace_weekly_hours", hours));
   check(await owner.rpc("replace_weekly_hours", { ...hours, p_barber: barber }));
@@ -48,6 +69,8 @@ try {
   assert.equal((await staff.rpc("manage_admin_appointment", { ...args(), p_business: foreign })).error?.code, "42501");
   const initial = args();
   const id = check(await staff.rpc("manage_admin_appointment", initial));
+  assert.equal((await owner.from("barbers").delete().eq("id", barber)).error?.code, "23503", "Deleting a barber must preserve appointment history.");
+  assert.equal(check(await admin.from("barbers").select("id").eq("id", barber)).length, 1);
   assert.equal(check(await staff.rpc("manage_admin_appointment", initial)), id, "Create retries are idempotent.");
   let a = await appointment(id);
   assert.equal(a.starts_at, `${date}T01:00:00+00:00`, "Admin local date is converted by shop timezone.");

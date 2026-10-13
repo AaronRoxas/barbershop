@@ -6,6 +6,8 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/admin";
 import { appointmentSchema, serviceSchema, barberSchema, businessSchema, overrideSchema, timeOffSchema, parseWeeklyHours } from "@/lib/validation/admin";
 import type { AdminFormState } from "@/lib/types/admin";
+import { landingContentSchema } from "@/lib/site/content";
+import { currencyScale } from "@/lib/money";
 
 function failure(error: { code?: string } | null): AdminFormState | null {
   if (!error) return null;
@@ -22,6 +24,7 @@ function failure(error: { code?: string } | null): AdminFormState | null {
 }
 function refresh() {
   revalidatePath("/admin", "layout");
+  revalidatePath("/(public)", "layout");
   for (const path of ["/", "/services", "/barbers", "/about", "/contact", "/book"]) revalidatePath(path);
 }
 function input(form: FormData) { return { ...Object.fromEntries(form), is_active: form.get("is_active") === "on" }; }
@@ -47,8 +50,10 @@ export async function saveAppointment(_: AdminFormState, form: FormData): Promis
 }
 export async function saveService(_: AdminFormState, form: FormData): Promise<AdminFormState> {
   const { client, business } = await requireAdmin(true);
-  const parsed = serviceSchema.safeParse(input(form)); if (!parsed.success) return invalid();
-  const { id, ...values } = parsed.data;
+  const parsed = serviceSchema(business.currency).safeParse(input(form));
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check your service details." };
+  const { id, price, ...details } = parsed.data;
+  const values = { ...details, price_minor: price * currencyScale(business.currency) };
   const result = id ? await client.from("services").update(values).eq("business_id", business.id).eq("id", id).select("id").single()
     : await client.from("services").insert({ ...values, business_id: business.id }).select("id").single();
   const error = failure(result.error); if (error) return error;
@@ -78,6 +83,24 @@ export async function saveAssignments(_: AdminFormState, form: FormData): Promis
   const result = await client.rpc("set_barber_services", { p_business: business.id, p_barber: parsed.data.barber, p_services: parsed.data.services });
   const error = failure(result.error); if (error) return error;
   refresh(); return { success: "Assigned services saved." };
+}
+export async function deleteBarber(_: AdminFormState, form: FormData): Promise<AdminFormState> {
+  const { client, business } = await requireAdmin(true);
+  const parsed = z.object({ id: z.guid(), confirm: z.literal("on") }).safeParse(Object.fromEntries(form));
+  if (!parsed.success) return { error: "Confirm that you want to permanently delete this barber." };
+  const result = await client.from("barbers").delete().eq("business_id", business.id).eq("id", parsed.data.id).select("id").single();
+  if (result.error?.code === "23503") return { error: "This barber has appointment history and cannot be deleted. Uncheck Available for booking in Edit profile to stop new bookings." };
+  const error = failure(result.error); if (error) return error;
+  refresh(); return { success: "Barber deleted." };
+}
+export async function saveLandingContent(_: AdminFormState, form: FormData): Promise<AdminFormState> {
+  const { client, business } = await requireAdmin(true);
+  const parsed = landingContentSchema.safeParse(Object.fromEntries(form));
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check your landing-page text." };
+  const result = await client.from("businesses").update({ landing_content: parsed.data }).eq("id", business.id).select("id").single();
+  const error = failure(result.error); if (error) return error;
+  refresh();
+  return { success: "Landing page updated." };
 }
 export async function saveBusiness(_: AdminFormState, form: FormData): Promise<AdminFormState> {
   const { client, business } = await requireAdmin(true);

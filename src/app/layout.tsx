@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Instrument_Sans, Instrument_Serif } from "next/font/google";
-import { SiteHeader } from "@/components/layout/site-header";
-import { SiteFooter } from "@/components/layout/site-footer";
 import { getSiteBusiness } from "@/lib/site/data";
 import { siteOrigin } from "@/lib/site/metadata";
 import "./globals.css";
@@ -42,9 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body>
         <a href="#main-content" className="skip-link">Skip to content</a>
-        <SiteHeader />
         {children}
-        <SiteFooter />
       </body>
     </html>
   );
